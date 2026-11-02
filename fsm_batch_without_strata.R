@@ -162,6 +162,17 @@ fsm_batch = function(data_frame, data_frame_past, t_ind, SOM, s_function = 'Dopt
     }
   }
   
+  X_cov_all = rbind(X_cov_past, X_cov)
+  if(s_function %in% c('max pc', 'min pc', 'Dopt pc'))
+  {
+    X_pc = if(s_function == 'Dopt pc') X_cov_all else X_cov
+    x.pc = prcomp(X_pc)$x[,1]
+  }
+  if(s_function == 'Dopt average')
+  {
+    x.avg = rowMeans(X_cov_all)
+  }
+
   if(intercept == TRUE)
   {
     X_N = as.matrix(cbind(rep(1,N), X_cov)) # n x (k+1) design matrix for the new units
@@ -203,6 +214,7 @@ fsm_batch = function(data_frame, data_frame_past, t_ind, SOM, s_function = 'Dopt
     t.index = som_order[i] # treatment group that will pick a unit at this stage
     
     units.current = unit.index[Z == t.index] # new units already in that treatment group
+    units.group = c(which(Z_past == t.index), N_past + units.current)
     
     X_N_group_past = X_N_past[Z_past == t.index, ] # design matrix for the past units in the choosing treatment group
     
@@ -273,9 +285,6 @@ fsm_batch = function(data_frame, data_frame_past, t_ind, SOM, s_function = 'Dopt
       
       if(s_function %in% c('max pc', 'min pc', 'Dopt pc'))
       {              
-        # Extract the 1st principal component from the full set of covariates
-        pca = prcomp(X_cov)
-        x.pc = pca$x[,1] #1st principal component
         
         if(s_function == 'max pc')
         {
@@ -294,7 +303,7 @@ fsm_batch = function(data_frame, data_frame_past, t_ind, SOM, s_function = 'Dopt
         {
           # include the unit which maximizes the dispersion of the 1st principal component
           # within the chooser group
-          x.pc.append = x.pc[c(units.current,units.search[u])]
+          x.pc.append = x.pc[c(units.group, N_past + units.search[u])]
           crit.func[u] = sum((x.pc.append - mean(x.pc.append))^2)
         }
       }
@@ -327,43 +336,27 @@ fsm_batch = function(data_frame, data_frame_past, t_ind, SOM, s_function = 'Dopt
       
       if(s_function == 'Dopt average')
       {
-        # first check if there are more than one covariate
-        if(k==1)
-        {
-          x.avg.append = as.vector(X_cov)[c(units.current,units.search[u])]
-          crit.func[u] = sum((x.avg.append - mean(x.avg.append))^2) 
-        }
-        else
-        {
-          x.avg = rowMeans(X_cov)
-          x.avg.append = x.avg[c(units.current,units.search[u])]
-          crit.func[u] = sum((x.avg.append - mean(x.avg.append))^2) 
-        }
+        x.avg.append = x.avg[c(units.group, N_past + units.search[u])]
+        crit.func[u] = sum((x.avg.append - mean(x.avg.append))^2)
       }
-      
+
       if(s_function == 'marginal var sum')
       {
-        # first check if there are more than one covariate
-        if(k==1)
+        X_treat = X_cov_all[c(units.group, N_past + units.search[u]),,drop = FALSE]
+        if(k == 1)
         {
-          x.append = as.vector(X_cov)[c(units.current,units.search[u])]
-          crit.func[u] = sum((x.append - mean(x.append))^2) 
+          crit.func[u] = sum((X_treat - mean(X_treat))^2)
+        }
+        else if(nrow(X_treat) == 1)
+        {
+          crit.func[u] = 0
         }
         else
         {
-          X_treat = X_cov[c(units.current,units.search[u]),]
-          if(is.null(nrow(X_treat)) == TRUE)
-          {
-            crit.func[u] = 0 
-          }
-          if(is.null(nrow(X_treat)) == FALSE)
-          {
-            crit.func[u] = matrix.trace(cov(X_treat)) 
-          }
-          
-        } 
+          crit.func[u] = matrix.trace(cov(X_treat))
+        }
       }
-      
+
       if((s_function %in% sf.names) == FALSE)
       {
         stop('Invalid selection function')
