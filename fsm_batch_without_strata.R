@@ -263,7 +263,7 @@ fsm_batch = function(data_frame, data_frame_past, t_ind, SOM, s_function = 'Dopt
         # Policy matrix - Pol_mat, Matrix of weights = w_pol
         # I am assuming cost to be constant
         Pol_mat = as.matrix(Pol_mat)
-        W = diag(w_pol)
+        W = diag(w_pol, nrow = length(w_pol))
         T.mat = t(Pol_mat) %*% W %*% Pol_mat
         
         crit.func[u] = as.vector(t(X_N[units.search[u],]) %*% (Sn %*% T.mat %*% Sn) %*%
