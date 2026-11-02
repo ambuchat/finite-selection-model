@@ -204,7 +204,7 @@ fsm_batch = function(data_frame, data_frame_past, t_ind, SOM, s_function = 'Dopt
     
     units.current = unit.index[Z == t.index] # new units already in that treatment group
     
-    X_N_group_past = X_N_past[Z_past == t.index, ] # design matrix for the past units in the choosing treatment group
+    X_N_group_past = X_N_past[Z_past == t.index, , drop = FALSE] # design matrix for the past units in the choosing treatment group
     
     # augment the past design matrix with the new design matrix
     if(length(units.current) == 0)
@@ -213,7 +213,7 @@ fsm_batch = function(data_frame, data_frame_past, t_ind, SOM, s_function = 'Dopt
     }
     if(length(units.current)>0)
     {
-      X_n = rbind(X_N_group_past, X_N[units.current,]) 
+      X_n = rbind(X_N_group_past, X_N[units.current,,drop = FALSE])
       
     }
     
