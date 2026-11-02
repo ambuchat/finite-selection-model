@@ -218,8 +218,12 @@ fsm_batch = function(data_frame, data_frame_past, t_ind, SOM, s_function = 'Dopt
     }
     
     
+    if(length(X_n) == 0)
+    {
+      Sn = solve(eps * Q0/(N_past + N))
+    }
     # reciprocal 'Condition number'
-    if((kappa((t(X_n)%*% X_n)/i))^{-1} < 1e-6)
+    else if((kappa((t(X_n)%*% X_n)/i))^{-1} < 1e-6)
     {
       #print(t(X_n)%*% X_n + eps * Q0)
       Sn = solve((t(X_n)%*% X_n)/nrow(X_n) + eps * (Q0/(N_past + N)))
