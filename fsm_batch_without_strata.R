@@ -137,7 +137,7 @@ fsm_batch = function(data_frame, data_frame_past, t_ind, SOM, s_function = 'Dopt
     X_cov_past = as.matrix(data_frame_past[,-c(1, which(colnames(data_frame_past) == t_ind))]) # matrix of all covariates
     
   }
-  if(index_col == FALSE)
+  if(index_col_past == FALSE)
   {
     X_cov_past = as.matrix(data_frame_past[,-which(colnames(data_frame_past) == t_ind)]) # matrix of all covariates
   }
