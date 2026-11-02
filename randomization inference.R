@@ -75,6 +75,13 @@ perm_test = function(Y_obs, alloc_obs, alloc, contrast = c(1,-1), tau = 0,
   Z_obs = alloc_obs
   
   S_perm = rep(0, n.iter)
+  error_perm = rep(0, n.iter)
+  error_obs = 0
+  # Rank accumulation, division, weighting, summation and null subtraction.
+  # gamma bounds their rounding error; inflate it for the computed scale.
+  u = .Machine$double.eps / 2
+  gamma = (N + 4) * u / (1 - (N + 4) * u)
+  rank_error = gamma / (1 - gamma)
   
   for(iter in 1:n.iter)
   {
@@ -118,6 +125,7 @@ perm_test = function(Y_obs, alloc_obs, alloc, contrast = c(1,-1), tau = 0,
       # Compute the means of ranks in each group
       T_rank = c(mean(Rj[Z_iter == level[1]]), mean(Rj[Z_iter == level[2]]))
       S_perm[iter] = sum(T_rank * contrast) - tau
+      error_perm[iter] = rank_error * (sum(abs(T_rank * contrast)) + abs(tau))
       
     }
     
@@ -137,13 +145,14 @@ perm_test = function(Y_obs, alloc_obs, alloc, contrast = c(1,-1), tau = 0,
     # Compute the means of ranks in each group
     T_rank = c(mean(Rj[Z_obs == level[1]]), mean(Rj[Z_obs == level[2]]))
     S_obs = sum(T_rank * contrast) - tau
+    error_obs = rank_error * (sum(abs(T_rank * contrast)) + abs(tau))
   }
   
   
   ## Compute the p value
-  # Statistics such as rank means can equal S_obs exactly in exact arithmetic
-  # yet differ from it in the last bits; count those ties as at least as extreme.
-  tol = sqrt(.Machine$double.eps) * max(1, abs(S_obs))
+  # Count rank ties within the combined rounding bounds. Marginal-mean
+  # comparisons remain exact, so outcome units do not set a tie threshold.
+  tol = error_perm + error_obs
   if(alternative == "greater")
   {
     p_value = length(S_perm[S_perm >= S_obs - tol])/length(S_perm)  
