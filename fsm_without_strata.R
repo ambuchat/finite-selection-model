@@ -311,7 +311,7 @@ fsm = function(data_frame, SOM, s_function = 'Dopt',
   # Treatments take turn in selecting the units
   Z = rep(-1,N) # treatment indicator initialized at all -1
   
-  crit_print = matrix(rep(-1,N*N),nrow = N)
+  crit_print = matrix(NA_real_, nrow = N, ncol = N)
   
   for(i in 1:N)
   {
@@ -506,7 +506,6 @@ fsm = function(data_frame, SOM, s_function = 'Dopt',
     units.selected[i] = unit.opt
   }
   
-  crit_print[crit_print == -1] = NA
   
   data_frame_allocated = cbind(data_frame,Z)
   colnames(data_frame_allocated)[ncol(data_frame_allocated)] = 'Treat'
