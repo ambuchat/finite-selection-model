@@ -764,7 +764,7 @@ ess_rand = function(assign_array, Y_mat, contrast = c(1,-1))
   Y1 = Y_mat[,1]
   Y2 = Y_mat[,2]
   
-  n.iter = dim(assign_array)[2]
+  n.iter = dim(assign_array)[1]
   # Initialize matrix of estimators - rows indicate iterations, columns indicate designs
   T_est = matrix(rep(0,n.iter*n_designs), nrow = n.iter)
   
